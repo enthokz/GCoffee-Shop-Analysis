@@ -1,6 +1,6 @@
 show tables;
--- virtual tabel for trx
-create view trx_month as
+-- virtual tabel for trx 2025
+create view trx_25 as
 	select *
 	from trx_2504
 union
@@ -9,6 +9,18 @@ union
 union
 	select *
 	from trx_2506;
+select count(*) from trx_25;
+
+-- VIrtual tabel for trx 2024
+create view trx_24 as
+		select *
+		from trx_2404
+	union
+		select *
+		from trx_2405
+	union 
+		select *
+        from trx_2406;
 
 -- Total income
  with ab as(
