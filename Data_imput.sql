@@ -15,6 +15,7 @@ alter table stores
     modify longitude float;
 
 -- import data
+-- Mneu dataset
 create table menu_items(
 	item_id int primary key not null,
     item_name varchar(30),
@@ -29,6 +30,7 @@ load data infile "C:/ProgramData/MySQL/MySQL Server 8.0/Data/gcoffee/menu_items.
     ignore 1 lines;
 select * from menu_items;
 
+-- Payment methods Dataset
 create table payment_methods(
 	method_id int primary key not null,
     method_name varchar(30),
@@ -39,6 +41,7 @@ load data infile "C:/ProgramData/MySQL/MySQL Server 8.0/Data/gcoffee/payment_met
     ignore 1 lines;
 select * from payment_methods;
 
+-- VOuchers Dataset
 create table vouchers(
 	voucher_id int primary key not null,
     voucher_code varchar(30),
@@ -52,6 +55,7 @@ load data infile "C:/ProgramData/MySQL/MySQL Server 8.0/Data/gcoffee/vouchers.cs
     ignore 1 lines;
 select * from vouchers;
 
+-- User Dataset
 create table user_2504(
 	user_id int primary key not null,
     gender varchar(30),
@@ -85,6 +89,7 @@ load data infile "C:/ProgramData/MySQL/MySQL Server 8.0/Data/gcoffee/users_20250
     ignore 1 lines;
 select * from user_2506;
 
+-- Transaction dataset
 create table trx_2504(
 	transaction_id varchar(50) primary key not null,
     store_id int,
@@ -152,6 +157,74 @@ load data infile "C:/ProgramData/MySQL/MySQL Server 8.0/Data/gcoffee/transaction
     set voucher_id= nullif(@voucher_id,''),user_id=nullif(@user_id,'');
 select count(*) from trx_2506;
 
+create table trx_2404(
+	transaction_id varchar(50) primary key not null,
+    store_id int,
+    payment_method_id int,
+    voucher_id int ,
+    user_id int,
+    original_amount float,
+    discount_applied float,
+    final_amount float,
+    created_at datetime,
+    foreign key (store_id) references stores(store_id),
+    foreign key (payment_method_id) references payment_methods(method_id),
+    foreign key (voucher_id) references vouchers(voucher_id))
+    engine= InnoDB;
+load data infile "C:/ProgramData/MySQL/MySQL Server 8.0/Data/gcoffee/transactions_202404.csv"
+	into table trx_2404
+    fields terminated by ','
+    ignore 1 lines
+    (transaction_id,store_id,payment_method_id,@voucher_id,@user_id,original_amount,discount_applied,final_amount,created_at)
+    set voucher_id= nullif(@voucher_id,''),user_id=nullif(@user_id,'');
+select count(*) from trx_2404;
+
+create table trx_2405(
+	transaction_id varchar(50) primary key not null,
+    store_id int,
+    payment_method_id int,
+    voucher_id int ,
+    user_id int,
+    original_amount float,
+    discount_applied float,
+    final_amount float,
+    created_at datetime,
+    foreign key (store_id) references stores(store_id),
+    foreign key (payment_method_id) references payment_methods(method_id),
+    foreign key (voucher_id) references vouchers(voucher_id))
+    engine= InnoDB;
+load data infile "C:/ProgramData/MySQL/MySQL Server 8.0/Data/gcoffee/transactions_202405.csv"
+	into table trx_2405
+    fields terminated by ','
+    ignore 1 lines
+    (transaction_id,store_id,payment_method_id,@voucher_id,@user_id,original_amount,discount_applied,final_amount,created_at)
+    set voucher_id= nullif(@voucher_id,''),user_id=nullif(@user_id,'');
+select count(*) from trx_2405;
+
+create table trx_2406(
+	transaction_id varchar(50) primary key not null,
+    store_id int,
+    payment_method_id int,
+    voucher_id int ,
+    user_id int,
+    original_amount float,
+    discount_applied float,
+    final_amount float,
+    created_at datetime,
+    foreign key (store_id) references stores(store_id),
+    foreign key (payment_method_id) references payment_methods(method_id),
+    foreign key (voucher_id) references vouchers(voucher_id))
+    engine= InnoDB;
+load data infile "C:/ProgramData/MySQL/MySQL Server 8.0/Data/gcoffee/transactions_202406.csv"
+	into table trx_2406
+    fields terminated by ','
+    ignore 1 lines
+    (transaction_id,store_id,payment_method_id,@voucher_id,@user_id,original_amount,discount_applied,final_amount,created_at)
+    set voucher_id= nullif(@voucher_id,''),user_id=nullif(@user_id,'');
+select count(*) from trx_2504;
+
+
+-- Items Dataset
 create table items_2504(
 	transaction_id varchar(50) not null,
     item_id int,
