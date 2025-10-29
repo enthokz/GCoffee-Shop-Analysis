@@ -2,19 +2,24 @@
 create database gcoffee;
 show tables;
 describe stores;
-select *
-	from user_2504;
-
-alter table stores
-	modify store_id int primary key not null,
-    modify store_name varchar(60),
-    modify street varchar(50),
-    modify city varchar(50),
-    modify state varchar(50),
-    modify latitude float,
-    modify longitude float;
 
 -- import data
+-- Store Dataset
+create table stores(
+	store_id int primary key not null,
+    store_name varchar(50),
+    street varchar(40),
+    postal_code int,
+    city varchar(30),
+    state varchar(30),
+    latitude float,
+    longitude float);
+load data infile "C:/ProgramData/MySQL/MySQL Server 8.0/Data/gcoffee/stores.csv"
+	into table stores
+    fields terminated by ','
+    ignore 1 lines;
+select * from stores;
+
 -- Mneu dataset
 create table menu_items(
 	item_id int primary key not null,
@@ -221,7 +226,7 @@ load data infile "C:/ProgramData/MySQL/MySQL Server 8.0/Data/gcoffee/transaction
     ignore 1 lines
     (transaction_id,store_id,payment_method_id,@voucher_id,@user_id,original_amount,discount_applied,final_amount,created_at)
     set voucher_id= nullif(@voucher_id,''),user_id=nullif(@user_id,'');
-select count(*) from trx_2504;
+select count(*) from trx_2406;
 
 
 -- Items Dataset
