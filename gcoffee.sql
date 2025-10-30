@@ -21,16 +21,31 @@ create view trx_24 as
 	union 
 		select *
         from trx_2406;
+select count(*) from trx_24;
+
+-- Virtual tabel for items 2025
+create view items_25 as
+		select *
+		from items_2504
+	union
+		select *
+		from items_2505
+	union
+		select *
+		from items_2506;
+select count(*) from items_25;
 
 -- Total income
  with ab as(
-select extract(month from created_at) as month, sum(final_amount) as total_revenue
+select extract(month from created_at) as month, sum(final_amount) as total_revenue,
+	count(*) as number_customer
 	from trx_25
     group by month
     order by month
     ),
     ac as(
-select extract(month from created_at) as month, sum(final_amount) as total_revenue
+select extract(month from created_at) as month, sum(final_amount) as total_revenue,
+	count(*) as number_customer
 	from trx_24
     group by month
     order by month),
@@ -39,13 +54,18 @@ select case when az.month=4 then 'April'
 		when az.month=5 then 'Mei'
         when az.month=6 then 'June'
 	end months,
-    round(az.total_revenue,2) as total_revenue_2025,
-    round(ax.total_revenue,2) as total_revenue_2024
+    round(az.total_revenue,2) as revenue_2025,
+    round(ax.total_revenue,2) as revenue_2024,
+    round(az.number_customer,2) as customer_2025,
+    round(ax.number_customer,2) as customer_2024
 	from ab az
     join ac ax
     on az.month=ax.month)
-select months,total_revenue_2024,total_revenue_2025,
-	round(((total_revenue_2025-total_revenue_2024)/total_revenue_2024)*100,2) as growth
+select months,revenue_2024,revenue_2025,
+	round(((revenue_2025-revenue_2024)/revenue_2024)*100,2) as revenue_vs_last_year,
+    customer_2024,
+    customer_2025,
+    round(((customer_2025-customer_2024)/customer_2024)*100,2) as cust_vs_last_year
 	from av;
 
 -- Whice store was underperformed
@@ -114,15 +134,45 @@ select az.month, purchase_member, purchase_nonmember
     on az.month=ax.month;
     
 -- Any voucher for member used?
-select distinct az.voucher_id, voucher_code, discount_type,
-	count(ax.voucher_id) as ordered_use_voucher
-	from trx_25 ax
-    join vouchers az
-    on az.voucher_id=ax.voucher_id
-    group by voucher_id, voucher_code, discount_type;
+with aa as(
+select distinct voucher_id, count(*) as number_used_member,
+	case when voucher_id is null
+		then 'No-voucher'
+        else voucher_id
+	end voucher_applied
+	from trx_25
+    where user_id is not null
+    group by voucher_id),
+	ab as(
+select distinct voucher_id, count(*) as number_used_nonmember,
+	case when voucher_id is null
+		then 'No-voucher'
+        else voucher_id
+	end voucher_applied
+	from trx_25
+    where user_id is null
+    group by voucher_id),
+    ac as(
+select aa.voucher_applied, number_used_member, number_used_nonmember,aa.voucher_id
+	from aa
+    join ab
+    on aa.voucher_applied=ab.voucher_applied)
+select voucher_applied, voucher_code, discount_value,number_used_member,number_used_nonmember
+	from ac
+    left join vouchers am
+    on ac.voucher_id=am.voucher_id;
+
+-- Best Seller Product
+select distinct az.item_id, item_name, category,sum(quantity) as total_qty, sum(subtotal) as total_price
+	from items_25 az
+    join menu_items ax
+    on az.item_id=ax.item_id
+    group by az.item_id, item_name,category;
+    
+
 
 
 select *
-	FROM vouchers;
+	FROM trx_2504;
 select store_name, postal_code, lag(postal_code) over(order by store_name) as selisih
 	from stores;
