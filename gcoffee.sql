@@ -10,6 +10,7 @@ union
 	select *
 	from trx_2506;
 select count(*) from trx_25;
+select *	from trx_25;
 
 -- VIrtual tabel for trx 2024
 create view trx_24 as
@@ -101,19 +102,6 @@ select state, round(avg(number_cust),2) as avg_cust
     on az.store_id=ax.store_id
     group by state
     order by avg_cust;
-
--- What best and underperform product 
-with aa as(
-select az.transaction_id,ax.item_id, quantity, ac.item_name 
-	from trx_25 az
-    join items_2504 ax
-    on az.transaction_id=ax.transaction_id
-    join menu_items ac
-    on ax.item_id=ac.item_id
-    where store_id=6)
-select item_id, item_name, sum(quantity) as qty_ordered
-	from aa
-    group by item_id,item_name;
     
 -- Purchase by Member
 with aa as(
@@ -162,17 +150,22 @@ select voucher_applied, voucher_code, discount_value,number_used_member,number_u
     left join vouchers am
     on ac.voucher_id=am.voucher_id;
 
--- Best Seller Product
-select distinct az.item_id, item_name, category,sum(quantity) as total_qty, sum(subtotal) as total_price
-	from items_25 az
+-- Best Seller und under product 
+with aq as(
+select transaction_id
+	from trx_25
+    where store_id=6),
+	aa as(
+select item_id,an.transaction_id, sum(quantity) as total_qty, sum(subtotal) as total_price
+	from items_25 an
+    join aq 
+    on aq.transaction_id=an.transaction_id
+    where aq.transaction_id= an.transaction_id
+    group by item_id, an.transaction_id)
+select aa.item_id, item_name, category, total_qty, total_price
+	from aa 
     join menu_items ax
-    on az.item_id=ax.item_id
-    group by az.item_id, item_name,category;
+    on aa.item_id=ax.item_id;
     
 
-
-
-select *
-	FROM trx_2504;
-select store_name, postal_code, lag(postal_code) over(order by store_name) as selisih
-	from stores;
+select * from stores;
