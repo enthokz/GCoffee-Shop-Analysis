@@ -10,7 +10,7 @@ union
 	select *
 	from trx_2506;
 select count(*) from trx_25;
-select *	from trx_25;
+select * from trx_25;
 
 -- VIrtual tabel for trx 2024
 create view trx_24 as
@@ -28,12 +28,13 @@ select count(*) from trx_24;
 create view items_25 as
 		select *
 		from items_2504
-	union
+	union all
 		select *
 		from items_2505
-	union
+	union all
 		select *
 		from items_2506;
+select * from items_25;
 select count(*) from items_25;
 
 -- Total income
@@ -71,10 +72,10 @@ select months,revenue_2024,revenue_2025,
 
 -- Whice store was underperformed
 with aa as(
-select store_id, round(sum(final_amount),2) as total_value
+select store_id, round(sum(final_amount),2) as total_value, count(distinct transaction_id) as total_cust
 	from trx_25
     group by store_id)
-select az.store_id, store_name,state, total_value
+select az.store_id, store_name,state, total_value, total_cust
 	from aa az
     join stores ax
     on az.store_id=ax.store_id
@@ -93,15 +94,21 @@ select rank() over(order by number_cust desc) as ranking, az.store_id, store_nam
 
 -- Is there lack of cust based on region sales?
 with aa as(
-select store_id, count(distinct transaction_id)  as number_cust
+select store_id, count(distinct transaction_id)  as number_cust, sum(final_amount) as revenu
 	from trx_25
+    group by store_id),
+    ab as(
+select store_id,count(distinct transaction_id) as cust_number, sum(final_amount) as reven
+	from trx_24
     group by store_id)
-select state, round(avg(number_cust),2) as avg_cust
+select state, round(avg(cust_number),2) as avg_cust_24, round(avg(number_cust),2) as avg_cust_25,
+round(avg(reven),2) as avg_revenue_24, round(avg(revenu),2) as avg_revenue_25
 	from aa az
-    join stores ax
+    left join stores ax
     on az.store_id=ax.store_id
-    group by state
-    order by avg_cust;
+    left join ab
+    on ab.store_id=az.store_id
+    group by state;
     
 -- Purchase by Member
 with aa as(
@@ -150,22 +157,32 @@ select voucher_applied, voucher_code, discount_value,number_used_member,number_u
     left join vouchers am
     on ac.voucher_id=am.voucher_id;
 
--- Best Seller und under product 
-with aq as(
-select transaction_id
+-- Pull data for cohort and basket analysis from store_id 6
+with ad as(
+select transaction_id, user_id
 	from trx_25
-    where store_id=6),
-	aa as(
-select item_id,an.transaction_id, sum(quantity) as total_qty, sum(subtotal) as total_price
-	from items_25 an
-    join aq 
-    on aq.transaction_id=an.transaction_id
-    where aq.transaction_id= an.transaction_id
-    group by item_id, an.transaction_id)
-select aa.item_id, item_name, category, total_qty, total_price
-	from aa 
-    join menu_items ax
-    on aa.item_id=ax.item_id;
+    where store_id=6)
+select ad.transaction_id,user_id, az.item_id,item_name, category, quantity,subtotal
+	from ad
+    left join items_25 az
+    on ad.transaction_id=az.transaction_id
+    left join menu_items ax
+    on az.item_id=ax.item_id;
     
+-- Average Order Value
+with arp as(
+	select store_id, round(sum(final_amount),2) as revenue, count(transaction_id) as num_cust
+		from trx_25
+        group by store_id
+        order by store_id)
+select state, round(avg(revenue),2) as avg_reveue, round(avg(num_cust),2) as avg_num_cust, round(avg(revenue/num_cust),2) as AOV
+	from arp az
+    left join stores ax
+    on az.store_id=ax.store_id
+    group by state;
 
+select item_id, sum(subtotal), sum(quantity)
+	from items_25
+    group by item_id;
+show tables;
 select * from stores;
